@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EL TALLER DEL REINO</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:"Arial Rounded MT Bold","Trebuchet MS",Arial,sans-serif;font-weight:900;font-size:clamp(22px,4.4vw,34px);text-transform:uppercase;background:radial-gradient(circle at 50% 28%,#ffd84a 0 46%,#ff5fbf 47%) fixed;min-height:100vh;color:#3b1f6b;text-align:center;user-select:none}
+#top{display:flex;justify-content:center;gap:8px;padding:8px;background:#fffc;position:sticky;top:0;z-index:5}
+.slot{width:54px;height:54px;border-radius:50%;background:#eee;border:4px dashed #aaa;display:flex;align-items:center;justify-content:center;font-size:28px;filter:grayscale(1);opacity:.5;transition:.4s}
+.slot.on{background:#ffc21a;border:4px solid #e08a00;filter:none;opacity:1;animation:pop .6s}
+#app{max-width:820px;margin:auto;padding:14px}
+h1{font-size:2.1em;margin:6px 0;line-height:1.05}
+h2{margin:8px 0;color:#0d4c8f;font-size:1.25em}
+p{margin:10px 0;line-height:1.3}
+.rb span{text-shadow:3px 3px 0 #fff,-3px -3px 0 #fff,3px -3px 0 #fff,-3px 3px 0 #fff,0 5px 0 #fff}
+.btn{font:inherit;font-size:1em;padding:.5em 1em;margin:8px;border:none;border-radius:50px;background:#ff6a00;color:#fff;box-shadow:0 7px 0 #b84a00;cursor:pointer;text-transform:uppercase}
+.btn:active{transform:translateY(5px);box-shadow:0 2px 0 #b84a00}
+.btn.g{background:#2ea83b;box-shadow:0 7px 0 #1b7526}
+.btn.b{background:#0d4c8f;box-shadow:0 7px 0 #082f59}
+input{font:inherit;font-size:1em;padding:.4em;border-radius:24px;border:5px solid #0d4c8f;text-align:center;width:92%;margin:10px 0;text-transform:uppercase}
+.card{background:#fffffff0;border:6px solid #ffc21a;border-radius:32px;padding:16px;box-shadow:0 8px 20px #0003;margin:12px 0}
+.hd{display:flex;align-items:center;justify-content:center;gap:10px}
+.kids{display:flex;justify-content:center;align-items:flex-end;gap:4px}
+.kids svg,.hd svg{animation:float 2s infinite ease-in-out}
+.item{display:inline-block;font-size:3.2em;background:#fff;border:4px solid #f6a1c9;border-radius:26px;padding:8px 14px;margin:6px;cursor:pointer;box-shadow:0 5px 0 #0002;transition:.7s}
+.item small{display:block;font-size:.4em;color:#0d4c8f}
+.gone{transform:translateY(260px) scale(.2);opacity:0;pointer-events:none}
+.shake{animation:shake .4s}
+.big{font-size:5em;animation:float 2s infinite ease-in-out}
+.bar{height:22px;background:#fff;border:3px solid #0d4c8f;border-radius:12px;overflow:hidden;margin:6px 0}
+.bar i{display:block;height:100%;background:#ff6a00;transition:.6s}
+#sea{position:relative;height:340px;background:linear-gradient(#bfe9ff,#1e88d8);border-radius:26px;overflow:hidden;border:5px solid #0d4c8f}
+.fish{position:absolute;font-size:3.4rem;cursor:pointer;animation:float 1.5s infinite ease-in-out}
+#field{position:relative;height:400px;overflow:hidden;background:#dff3ff}
+.bub{position:absolute;bottom:-100px;width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#fff,#9fd8ff99);border:3px solid #fff;font-size:2.6rem;display:flex;align-items:center;justify-content:center;cursor:pointer;animation:up 6.5s linear forwards}
+#heart{position:absolute;bottom:6px;left:0;right:0;font-size:4.5rem;opacity:.3;transition:.4s}
+.msg{min-height:1.4em;color:#d6246e}
+.pray{background:#fff7d6;border:5px dashed #ff6a00;border-radius:24px;padding:16px;font-size:.9em;line-height:1.45;margin:10px 0;color:#3b1f6b}
+.pv{width:100%;max-width:520px;border-radius:22px;border:6px solid #fff;box-shadow:0 6px 16px #0004}
+.diploma{background:#fffbe6;border:12px double #e08a00;border-radius:18px;padding:18px;animation:pop .8s}
+.diploma .n{font-size:1.7em;color:#d6246e;border-bottom:4px solid #ffc21a;display:inline-block;padding:0 12px;margin:8px;word-break:break-word}
+@keyframes pop{0%{transform:scale(.3)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
+@keyframes shake{25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+@keyframes float{50%{transform:translateY(-10px)}}
+@keyframes up{to{transform:translateY(-560px)}}
+@keyframes wave{0%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+@media print{#top,.btn{display:none}body{background:#fff}}
+</style>
+</head>
+<body>
+<div id="top"></div>
+<div id="app"></div>
+<script>
+const $=s=>document.querySelector(s), app=$('#app');
+const C={p:'#ff5fbf',y:'#ffd84a',b:'#0d4c8f',g:'#2ea83b',o:'#ff6a00',l:'#f6a1c9',d:'#3b1f6b'};
+let name='',pieces=0,timer=null,curO=null,curP='',curT='',curN='',curI=0;
+const icons=['🔨','⚓','🔑','👑','🌊'];
+
+// ---------- Sonidos ----------
+let ac;
+function tone(f,d=.15,type='sine',t0=0,v=.25){
+  try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+  const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.value=f;
+  g.gain.setValueAtTime(v,ac.currentTime+t0);g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+t0+d);
+  o.connect(g);g.connect(ac.destination);o.start(ac.currentTime+t0);o.stop(ac.currentTime+t0+d);}catch(e){}
+}
+const beep=()=>tone(660+Math.random()*400,.12,'triangle');
+const oops=()=>{tone(220,.2,'square',0,.12);tone(180,.25,'square',.15,.12)};
+const fanfare=()=>[523,659,784,1047,784,1047].forEach((f,i)=>tone(f,.25,'triangle',i*.14));
+
+// ---------- Los tres niños ----------
+const K=[{h:'#f0532b',s:'#ffd6b0',t:'#e8332a',b:'#6b3fa0',sh:'#ffe27a'},
+         {h:'#ffe21a',s:'#ffd6b0',t:'#7ed03a',b:'#4b3a9a',sh:'#8be05a'},
+         {h:'#2a1a17',s:'#b9703f',t:'#ffd23a',b:'#ff6fb5',sh:'#ff8fc4'}];
+function kid(k,w=110){const c=K[k];
+ const logo=k==0?'<circle cx="50" cy="82" r="8" fill="#ffd83a"/><circle cx="47" cy="80" r="1.5"/><circle cx="53" cy="80" r="1.5"/>':
+  k==1?'<path d="M42 90 L43 78 L47 84 L50 76 L53 84 L57 78 L58 90Z" fill="#ffc21a"/>':
+  '<text x="50" y="92" font-size="22" text-anchor="middle" fill="#ff5fa2">♥</text>';
+ const hair=k==0?`<path d="M27 42 Q28 18 52 19 Q73 20 73 42 Q60 28 44 32 Q34 34 27 42Z" fill="${c.h}"/>`:
+  k==1?`<path d="M25 42 A25 25 0 0 1 75 42 Q50 30 25 42Z" fill="${c.h}"/>`:
+  `<circle cx="32" cy="27" r="11" fill="${c.h}"/><circle cx="50" cy="20" r="12" fill="${c.h}"/><circle cx="68" cy="27" r="11" fill="${c.h}"/>`;
+ return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 140" width="${w}" height="${w*1.4}">
+<circle cx="50" cy="40" r="${k==2?33:26}" fill="${c.h}"/>
+<path d="M32 74 L14 52 M68 74 L86 52" stroke="${c.s}" stroke-width="9" stroke-linecap="round"/>
+<rect x="30" y="64" width="40" height="36" rx="10" fill="${c.t}"/>${logo}
+${k==2?`<path d="M30 98 L20 122 H80 L70 98Z" fill="${c.b}"/>`:`<rect x="30" y="98" width="40" height="20" rx="4" fill="${c.b}"/>`}
+<rect x="36" y="118" width="9" height="14" fill="${c.s}"/><rect x="55" y="118" width="9" height="14" fill="${c.s}"/>
+<ellipse cx="38" cy="135" rx="11" ry="5" fill="${c.sh}"/><ellipse cx="62" cy="135" rx="11" ry="5" fill="${c.sh}"/>
+<circle cx="50" cy="44" r="23" fill="${c.s}"/>${hair}
+<circle cx="41" cy="46" r="3" fill="#222"/><circle cx="59" cy="46" r="3" fill="#222"/>
+<circle cx="33" cy="54" r="4" fill="#ff7a7a" opacity=".6"/><circle cx="67" cy="54" r="4" fill="#ff7a7a" opacity=".6"/>
+<path d="M40 55 Q50 67 60 55Z" fill="#7a1f1f"/></svg>`}
+const crown='<svg viewBox="0 0 60 40" width="56"><path d="M4 36 L8 8 L20 22 L30 4 L40 22 L52 8 L56 36Z" fill="#ffc21a" stroke="#c98d00" stroke-width="3" stroke-linejoin="round"/></svg>';
+const rb=t=>{const c=[C.b,C.l,C.g,'#ffc21a',C.o];let i=0;return `<span class="rb">`+[...t].map(ch=>ch==' '?' ':`<span style="color:${c[i++%5]}">${ch}</span>`).join('')+`</span>`};
+const hd=(t,k)=>`<div class="hd">${kid(k,84)}<h2>${t}</h2></div>`;
+
+// ---------- Utilidades ----------
+function bar(){$('#top').innerHTML=icons.map((p,i)=>`<div class="slot ${i<pieces?'on':''}">${p}</div>`).join('')}
+function show(html){clearInterval(timer);app.innerHTML=html;bar();window.scrollTo(0,0)}
+
+const prayers=[
+ 'Señor, hoy dejo en tu altar el usar mucho el celular y no querer dejarlo. También dejo mi enojo y mi envidia. Y te entrego mis cosas buenas: mi amor por ti y mis talentos. Todo es tuyo. Amén.',
+ 'Jesús, te presto mi barquito: mi tiempo, mis cosas y lo que sé hacer. Úsalo como tú quieras, porque contigo siempre sobra. Amén.',
+ 'Padre, me doy vuelta hacia ti. Suelto la tele, los juegos, los dulces y el sueño que me distraen cuando quiero hablar contigo. Enfoca mi corazón en ti. Amén.',
+ 'Padre nuestro, que se haga tu Reino en mi vida. Te elijo a ti primero, Fuente que nunca se acaba. Confío en que cuidas mi comida, mis cosas y todo lo que necesito. Amén.',
+ 'Señor, hazme una ola de bendición. Quiero animar a mis amigos y contarles que tú los amas mucho. Que tu Reino crezca por medio de mí. Amén.'
+];
+function win(txt,next,idx){
+  curP=prayers[idx];curT=txt;curN=next;curI=idx;
+  app.innerHTML=`<div class="card"><div class="hd">${kid(idx%3,90)}<h2>¡HORA DE ORAR, ${name}!</h2></div>
+  <p>REPITE CONMIGO:</p><div class="pray">${curP}</div>
+  <button class="btn b" onclick="say()">🔊 ESCUCHAR</button>
+  <button class="btn g" onclick="amen()">AMÉN 🙌</button></div>`;
+  window.scrollTo(0,0);
+}
+function say(){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(curP);u.lang='es-AR';u.rate=.85;speechSynthesis.speak(u)}catch(e){}}
+function amen(){
+  try{speechSynthesis.cancel()}catch(e){}
+  pieces=curI+1;fanfare();bar();
+  app.innerHTML=`<div class="card"><div class="big">🏅</div><h2>¡GANASTE UNA PIEZA DORADA, ${name}!</h2><p>${curT}</p>
+  <button class="btn g" onclick="${curN}()">SIGUIENTE ➜</button></div>`;
+}
+
+// ---------- Imagen para compartir (tarjeta y diploma) ----------
+const svgImg=k=>new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(kid(k,200))});
+function wrap(x,t,cx,y,w,lh){let l='';for(const wd of t.split(' ')){const tt=l?l+' '+wd:wd;if(x.measureText(tt).width>w&&l){x.fillText(l,cx,y);y+=lh;l=wd}else l=tt}x.fillText(l,cx,y);return y+lh}
+async function draw(o){
+  const c=document.createElement('canvas');c.width=c.height=1080;const x=c.getContext('2d');
+  x.fillStyle=C.p;x.fillRect(0,0,1080,1080);
+  x.fillStyle=C.y;x.beginPath();x.arc(540,560,480,0,7);x.fill();
+  (await Promise.all([0,1,2].map(svgImg))).forEach((im,i)=>x.drawImage(im,60+i*380,790,200,280));
+  x.fillStyle='#fff';x.beginPath();x.roundRect?x.roundRect(80,110,920,640,50):x.rect(80,110,920,640);x.fill();
+  x.textAlign='center';const F='900 %px "Arial Rounded MT Bold","Trebuchet MS",Arial';
+  x.fillStyle='#fff';x.font=F.replace('%',48);x.fillText('👑 PRESENCIA KIDS',540,80);
+  x.fillStyle=C.b;x.font=F.replace('%',60);x.fillText(o.t.toUpperCase(),540,205);
+  x.fillStyle=C.d;x.font=F.replace('%',66);let y=310;
+  o.m.toUpperCase().split('\n').forEach(p=>{y=wrap(x,p,540,y,820,80)});
+  x.fillStyle=C.o;x.font=F.replace('%',48);
+  if(o.a)x.fillText(o.a.toUpperCase(),540,650);if(o.b)x.fillText(o.b.toUpperCase(),540,715);
+  return c;
+}
+function dl(b,n){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;a.click()}
+async function out(share){
+  const c=await draw(curO);
+  c.toBlob(async b=>{
+    const f=new File([b],'reino.png',{type:'image/png'});
+    if(share){try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:'PRESENCIA KIDS'});return}}catch(e){if(e.name==='AbortError')return}
+      $('#m').textContent='IMAGEN GUARDADA: ¡ENVÍALA POR WHATSAPP!'}
+    else $('#m').textContent='¡IMAGEN GUARDADA! 💾';
+    dl(b,'reino.png');
+  },'image/png');
+}
+
+// ---------- Bienvenida ----------
+function welcome(){
+  pieces=0;
+  show(`<div>${crown}</div><h1>${rb('EL TALLER DEL REINO')}</h1><h2 style="color:#fff;text-shadow:2px 2px 0 #0d4c8f">LOS SECRETOS DEL PADRE NUESTRO</h2>
+  <div class="kids">${kid(0,120)}${kid(1,120)}${kid(2,120)}</div>
+  <div class="card"><p>¡HOLA! ¿CÓMO TE LLAMAS?</p>
+  <input id="nm" maxlength="18" placeholder="ESCRIBE TU NOMBRE">
+  <br><button class="btn" onclick="start()">¡EMPEZAR AVENTURA!</button></div>
+  <p style="color:#fff">PRESENCIA KIDS</p>`);
+}
+function start(){
+  name=($('#nm').value||'').trim().toUpperCase();
+  if(!name){$('#nm').classList.add('shake');oops();setTimeout(()=>$('#nm').classList.remove('shake'),400);return}
+  fanfare();l1();
+}
+
+// ---------- Nivel 1: Mochila del Altar ----------
+function l1(){
+  const it=[['📱','MUCHO CELULAR',1],['😡','ENOJO',1],['😒','ENVIDIA',1],['🎮','SOLO JUEGOS',1],['❤️','MI AMOR POR DIOS',0],['🎨','MIS TALENTOS',0]];
+  let left=6,heavy=4;
+  show(hd('NIVEL 1: LA MOCHILA DEL ALTAR 🎒',0)+`<p>DEJA EN EL ALTAR LO QUE PESA... ¡Y TAMBIÉN LAS COSAS BUENAS!</p>
+  <div class="bar"><i id="w" style="width:100%"></i></div>PESO DE LA MOCHILA
+  <div class="card">${it.map((v,i)=>`<div class="item" id="i${i}" onclick="drop(${i},${v[2]})">${v[0]}<small>${v[1]}</small></div>`).join('')}</div>
+  <div class="msg" id="m"></div><div style="font-size:4.5rem">⛪</div>`);
+  window.drop=(i,bad)=>{
+    const el=$('#i'+i);el.classList.add('gone');beep();left--;
+    if(bad){heavy--;$('#w').style.width=heavy*25+'%';$('#m').textContent='¡QUÉ LIVIANA! 🎈'}
+    else $('#m').textContent='¡LAS COSAS BUENAS TAMBIÉN SE DEJAN EN EL ALTAR! ✨';
+    if(left==0)setTimeout(()=>win('LO QUE PESA Y LO QUE ES BUENO: TODO SE PONE EN LAS MANOS DE DIOS.','l2',0),800);
+  };
+}
+
+// ---------- Nivel 2: Barquito de Pedro ----------
+function l2(){
+  show(hd('NIVEL 2: EL BARQUITO DE PEDRO ⛵',1)+`<p>JESÚS LE PIDE A PEDRO SU BARQUITO. ¿QUÉ HACES?</p>
+  <div class="card"><div class="big">⛵</div>
+  <button class="btn g" onclick="lend()">¡SE LO PRESTO A JESÚS!</button>
+  <button class="btn b" onclick="keep()">ME LO QUEDO</button><div class="msg" id="m"></div></div>`);
+  window.keep=()=>{oops();$('#m').textContent='JESÚS TE SONRÍE... ¿Y SI LE PRESTAS TU BARQUITO? 😊'};
+  window.lend=()=>{
+    fanfare();let n=0;
+    show(`<h2>¡LA GRAN PESCA! 🎣</h2><p>TOCA LOS PECES BRILLANTES: <span id="c">0</span>/8</p><div id="sea"></div>`);
+    const sea=$('#sea');
+    for(let i=0;i<8;i++){
+      const f=document.createElement('div');f.className='fish';f.textContent=['🐟','🐠','🐡'][i%3];
+      f.style.left=(Math.random()*78+3)+'%';f.style.top=(Math.random()*72+4)+'%';f.style.animationDelay=Math.random()+'s';
+      f.onclick=()=>{f.remove();beep();$('#c').textContent=++n;if(n==8)setTimeout(()=>win('CUANDO PONEMOS LO NUESTRO AL SERVICIO DE JESÚS, ¡DIOS DA MÁS DE LO QUE IMAGINAMOS!','l3',1),400)};
+      sea.appendChild(f);
+    }
+  };
+}
+
+// ---------- Nivel 3: Giro de Ezequías ----------
+function l3(){
+  let n=0,done=false;const need=8;
+  show(hd('NIVEL 3: EL GIRO DE EZEQUÍAS 🔄',2)+`<p>EZEQUÍAS SE DIO VUELTA HACIA DIOS. ¡REVIENTA LAS BURBUJAS QUE TE DISTRAEN!</p>
+  <div class="card" style="padding:0;overflow:hidden"><div id="field"><div id="heart">💛</div></div></div>
+  <p><span id="c">0</span> / ${need}</p>`);
+  const field=$('#field'),ems=['📺','🎮','🍭','😴','🧸','📱'];
+  timer=setInterval(()=>{
+    const b=document.createElement('div');b.className='bub';b.textContent=ems[Math.floor(Math.random()*ems.length)];
+    b.style.left=Math.random()*78+'%';
+    b.onclick=()=>{if(done)return;b.remove();beep();n++;$('#c').textContent=n;
+      $('#heart').style.opacity=.3+n/need*.7;$('#heart').style.transform=`scale(${1+n/need*.4})`;
+      if(n>=need){done=true;clearInterval(timer);setTimeout(()=>win('CUANDO DEJAMOS LAS DISTRACCIONES, NUESTRO CORAZÓN SE ENFOCA EN DIOS.','l4',2),500)}};
+    b.onanimationend=()=>b.remove();
+    field.appendChild(b);
+  },650);
+}
+
+// ---------- Nivel 4: Corona de la Fuente ----------
+function l4(){
+  show(hd('NIVEL 4: LA CORONA DE LA FUENTE 👑',0)+`<p>JESÚS DIJO: BUSCA PRIMERO EL REINO DE DIOS. ¿QUÉ ELIGES PRIMERO?</p>
+  <div class="card">
+  <div class="item" onclick="pick(0)">🍔<small>COMIDA</small></div>
+  <div class="item" onclick="pick(0)">🧸<small>JUGUETES</small></div>
+  <div class="item" onclick="pick(1)">⛲<small>LA FUENTE DEL REINO</small></div>
+  <div class="msg" id="m"></div></div>`);
+  window.pick=g=>{
+    if(!g){oops();$('#m').textContent='ESO ES BUENO, PERO... ¿QUÉ VA PRIMERO? 🤔';return}
+    fanfare();
+    show(`<div class="card"><div class="big">⛲</div><h2>¡LA FUENTE NUNCA SE ACABA!</h2>
+    <p>¡Y LO DEMÁS LLEGA SOLITO!</p><div style="font-size:3em">🍔 🧸 🎁 👕</div>
+    <button class="btn g" onclick="win('SI PONEMOS A DIOS PRIMERO, ÉL CUIDA TODO LO QUE NECESITAMOS.','l5',3)">¡CORONARME! 👑</button></div>`);
+  };
+}
+
+// ---------- Nivel 5: Ola de Bendición ----------
+function l5(){
+  show(hd('NIVEL 5: LA OLA DE BENDICIÓN 🌊',1)+`<p>¡SÚBETE A LA OLA Y ENVÍA ÁNIMO A UN AMIGO!</p>
+  <div class="card" style="overflow:hidden"><div id="w" style="font-size:5em">🏄</div>
+  <button class="btn b" onclick="ride()">¡SUBIRME A LA OLA!</button></div>`);
+  window.ride=()=>{
+    beep();const w=$('#w');w.textContent='🌊🏄🌊';w.style.animation='wave 1.2s';
+    setTimeout(()=>{
+      show(`<h2>TU TARJETA DE ÁNIMO 💌</h2><div class="card"><p>¿PARA QUIÉN ES?</p>
+      <input id="fr" maxlength="18" placeholder="NOMBRE DE TU AMIGO (OPCIONAL)">
+      <p>ELIGE TU MENSAJE:</p>
+      ${['¡DIOS TE AMA MUCHO!','¡ESTOY ORANDO POR TI!','¡ERES UN TESORO PARA JESÚS!'].map(t=>`<button class="btn g" style="display:block;width:96%" onclick="send('${t}')">💌 ${t}</button>`).join('')}</div>`);
+    },1200);
+  };
+  window.send=async t=>{
+    const f=($('#fr').value||'').trim();
+    curO={t:'TARJETA DE ÁNIMO',m:t,a:f?'PARA: '+f:'',b:'DE: '+name};
+    const c=await draw(curO);fanfare();
+    show(`<h2>¡TU TARJETA ESTÁ LISTA! 💌</h2><img class="pv" src="${c.toDataURL()}"><div class="msg" id="m"></div>
+    <button class="btn b" onclick="out(true)">📲 COMPARTIR</button>
+    <button class="btn" onclick="out(false)">💾 GUARDAR</button>
+    <button class="btn g" onclick="win('BENDECIR A OTROS HACE CRECER EL REINO.','diploma',4)">SEGUIR ➜</button>`);
+  };
+}
+
+// ---------- Diploma ----------
+function diploma(){
+  curO={t:'DIPLOMA DEL REINO',m:name+'\nMAESTRO CONSTRUCTOR DEL REINO',a:'',b:''};
+  show(`<div class="diploma"><div>${crown}</div>
+  <h2>DIPLOMA DEL REINO</h2><p>SE OTORGA A</p><div class="n">${name}</div>
+  <h1>${rb('MAESTRO CONSTRUCTOR DEL REINO')}</h1>
+  <p>POR SOLTAR LO QUE PESA, PRESTAR SU BARQUITO, ENFOCAR SU CORAZÓN, BUSCAR PRIMERO EL REINO Y BENDECIR A OTROS.</p>
+  <div style="font-size:1.6em">🔨 ⚓ 🔑 👑 🌊</div>
+  <div class="kids">${kid(0,90)}${kid(1,90)}${kid(2,90)}</div></div>
+  <div class="msg" id="m"></div>
+  <button class="btn b" onclick="out(true)">📲 COMPARTIR</button>
+  <button class="btn" onclick="out(false)">💾 GUARDAR</button>
+  <button class="btn" onclick="fanfare()">🎺 ¡FANFARRIA!</button>
+  <button class="btn g" onclick="welcome()">🔄 JUGAR DE NUEVO</button>`);
+  fanfare();
+}
+welcome();
+</script>
+</body>
+</html>
